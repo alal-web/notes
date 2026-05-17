@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1, viewport-fit=cover, width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" sizes="32x32" href="/zen/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/zen/favicon-16x16.png">
+    <title>Zen</title>
+    <meta name="description" content="A minimal, clean space for your thoughts. Store notes securely in Markdown format within a local SQLite database.">
+    
+    <style>
+        /* https: //www.joshwcomeau.com/css/custom-css-reset/ */
+
+        /* 1. Use a more-intuitive box-sizing model */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* 2. Remove default margin */
+        * {
+            margin: 0;
+        }
+
+        body {
+            /* 3. Add accessible line-height */
+            line-height: 1.5;
+            /* 4. Improve text rendering */
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 5. Improve media defaults */
+        img,
+        picture,
+        video,
+        canvas,
+        svg {
+            display: block;
+            max-width: 100%;
+        }
+
+        /* 6. Inherit fonts for form controls */
+        input,
+        button,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        /* 7. Avoid text overflows */
+        p,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            overflow-wrap: break-word;
+        }
+
+        /* 8. Improve line wrapping */
+        p {
+            text-wrap: pretty;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            text-wrap: balance;
+        }
+
+        /*
+        9. Create a root stacking context
+        */
+        #root,
+        #__next {
+            isolation: isolate;
+        }
+
+        :root {
+            /* https://tailwindcss.com/docs/colors */
+            /* https://gist.github.com/guvener/d8952570d5a8be430580b93800519439 */
+            --neutral-50: #FAFAFA;
+            --neutral-100: #F5F5F5;
+            --neutral-200: #E5E5E5;
+            --neutral-300: #D4D4D4;
+            --neutral-400: #A3A3A3;
+            --neutral-500: #737373;
+            --neutral-600: #525252;
+            --neutral-700: #404040;
+            --neutral-800: #262626;
+            --neutral-900: #171717;
+            --red-600: #DC2626;
+            --red-700 : #B91C1C;
+            --yellow-100: #FEF9C3;
+            --yellow-500: #EAB308;
+
+            /* typography */
+            /* Major Second */
+            --font-scale: 1.125;
+            --font-family: ui-sans-serif, system-ui, sans-serif;
+            --font-family-code: ui-monospace, monospace;
+            /* 1rem * pow(var(--font-scale), 6) */
+            --h1: 600 2.027rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 5) */
+            --h2: 600 1.802rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 4) */
+            --h3: 600 1.602rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 3) */
+            --h4: 600 1.424rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 2) */
+            --h5: 600 1.266rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 1) */
+            --h6: 600 1.125rem/1.2 var(--font-family);
+            /* https://m3.material.io/styles/typography/applying-type */
+            --p1: normal 1rem/1.5 var(--font-family);
+            /* 1rem / var(--font-scale) */
+            --sm: normal 0.889rem/1.4 var(--font-family);
+            --code: normal 0.889rem/1.4 var(--font-family-code);
+
+            /* spacing */
+            /* https://medium.com/dwarves-design/the-principle-of-spacing-in-ui-design-part-1-3354d0d65e51 */
+            --spacing-xs: 6px;
+            --spacing-sm: 12px;
+            --spacing-md: 24px;
+            --spacing-lg: 48px;
+
+            /* elevation */
+            --shadow-1: rgba(0, 0, 0, 0.01) 0px 1px 3px 0px, rgba(0, 0, 0, 0.10) 0px 1px 3px 0px;
+            --shadow-2: rgba(0, 0, 0, 0.10) 0px 1px 3px 0px, rgba(0, 0, 0, 0.10) 0px 1px 3px 0px;
+            /* tailwind #37 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-3: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+            /* tailwind #38 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-4: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+            /* tailwind #40 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-5: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+            --shadow-6: rgba(0, 0, 0, 0.1) 0px -10px 15px -3px;
+
+            /* globals */
+            --mobile-navbar-height: 60px;
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizelegibility;
+        }
+
+        html {
+            /* 1rem */
+            font-size: 16px;
+        }
+
+        body {
+            font: var(--p1);
+            /* https://uxmovement.com/content/why-you-should-never-use-pure-black-for-text-or-backgrounds/ */
+            color: #444;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+        
+        .section {
+            padding: var(--spacing-lg) 0;
+        }
+        
+        .header {
+            padding: var(--spacing-md) 0;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fade-from-top 0.6s ease-out 0.1s forwards;
+        }
+        
+        @keyframes fade-from-top {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font: var(--p);
+            font-weight: 600;
+            color: var(--neutral-900);
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: var(--neutral-600);
+            text-decoration: none;
+            font: var(--sm);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--neutral-900);
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+        }
+        
+        .hero-title {
+            color: var(--neutral-900);
+            margin-bottom: 8px;
+            font-size: 56px;
+            font-weight: 400;
+        }
+        
+        .hero-subtitle {
+            font: var(--h4);
+            color: var(--neutral-600);
+            margin-bottom: var(--spacing-lg);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: normal;
+        }
+        
+        .hero-description {
+            font: var(--p1);
+            color: var(--neutral-500);
+            max-width: 700px;
+            margin: 0 auto var(--spacing-md);
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            margin-bottom: var(--spacing-lg);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fade-from-bottom 0.8s ease-out 0.2s forwards;
+        }
+        
+        .button {
+            display: flex;
+            height: 36px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            border-radius: 6px;
+            border: 1px solid var(--neutral-200);
+            overflow: hidden;
+            font: var(--sm);
+            font-weight: 600;
+            transition-property: background-color, box-shadow;
+            transition-duration: 500ms;
+            text-decoration: none;
+            box-shadow: var(--shadow-1);
+            background-color: #fff;
+        }
+
+        .button:hover {
+            background-color: var(--neutral-100);
+            cursor: pointer;
+        }
+
+        .button:active {
+            box-shadow: none;
+        }
+
+        .button.primary {
+            background-color: var(--neutral-900);
+            color: white;
+
+            svg {
+                margin-left: 6px;
+            }
+        }
+
+        .button.primary:hover {
+            background-color: var(--neutral-700);
+        }
+
+        .button.secondary {
+            background-color: white;
+            color: var(--neutral-900);
+        }
+
+        .button.secondary:hover {
+            background-color: var(--neutral-50);
+        }
+        
+        .screenshot {
+            margin: 0 auto;
+            border: 1px solid var(--neutral-200);
+            outline: 5px solid var(--neutral-100);
+            border-radius: 8px;
+            box-shadow: var(--shadow-5);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fade-from-bottom 0.8s ease-out 0.3s forwards;
+        }
+        
+        @keyframes fade-from-bottom {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .screenshot img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .features {
+            background-color: var(--neutral-50);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 32px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-3);
+        }
+        
+        .feature-title {
+            color: var(--neutral-900);
+            display: flex;
+
+            svg {
+                margin-right: 6px;;
+            }
+
+            .experimental {
+                color: var(--yellow-500);
+                background-color: var(--yellow-100);
+                padding: 4px 10px;
+                border-radius: 50px;
+                font-size: 14px;
+                margin-left: 6px;
+            }
+        }
+        
+        .feature-description {
+            color: var(--neutral-500);
+        }
+        
+        .focus-section {
+            text-align: center;
+        }
+        
+        .section-title {
+            font: var(--h2);
+            color: var(--neutral-900);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .section-description {
+            color: var(--neutral-700);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        h1 {
+            font: var(--h2);
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font: var(--h3);
+        }
+
+        h3 {
+            font: var(--h5);
+        }
+
+        h4, h5, h6 {
+            font: var(--h6);
+        }
+
+        p,
+        blockquote,
+        ul,
+        li,
+        table {
+            font: var(--p1);
+            padding: 3px 0;
+        }
+
+        img {
+            width: auto;
+            max-width: 100%;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            padding: 3px 0;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        code {
+            font: var(--code);
+            background-color: var(--neutral-50);
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+
+        pre {
+            margin: 4px 0;
+            padding: 12px;
+            background-color: var(--neutral-50);
+            border-radius: 4px;
+            overflow: scroll;
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            font: var(--code);
+            line-height: 24px;
+        }
+
+        blockquote {
+            border-left: 3px solid var(--neutral-700);
+            padding-left: 10px;
+            margin: 10px 4px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        ul > li > ul {
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        li > ul > li {
+            padding-bottom: 0;
+        }
+
+        ul.contains-task-list {
+            padding-left: 0;
+        }
+
+        li.task-list-item {
+            list-style-type: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        table, th, td {
+            border: 1px solid var(--neutral-200);
+            padding: 5px 15px;
+            width: max-content;
+        }
+
+        th {
+            text-align: left;
+        }
+
+        hr {
+            margin-top: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--neutral-100);
+        }
+
+        s {
+            color: var(--neutral-400);
+        }
+
+        mark {
+            background: var(--yellow-100);
+            border-radius: 4px;
+            padding: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: var(--spacing-sm);
+            }
+            
+            .hero-title {
+                font-size: 40px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="/zen" class="logo">Zen</a>
+            <div class="nav-links">
+                <a href="https://zendemo.fly.dev" class="nav-link">Demo</a>
+                <a href="/zen/documentation" class="nav-link">Documentation</a>
+                <a href="https://github.com/sheshbabu/zen" class="nav-link">GitHub</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero section">
+            <div class="container">
+                <h1 class="hero-title">Write it Down. Own it Forever.</h1>
+                <p class="hero-description">
+                    A clean, quiet space to think. Your notes live in standard Markdown within a local SQLite database. No vendor lock-in, no distractions.
+                </p>
+                
+                <div class="hero-buttons">
+                    <a href="https://zendemo.fly.dev" class="button primary" target="_blank">Try Demo
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                </div>
+                
+                <div class="screenshot">
+                    <img src="screenshot.png"/>
+                </div>
+            </div>
+        </section>
+
+        <section class="features section">
+            <div class="container">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-feather-icon lucide-feather"><path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/></svg>
+                            Simple & Lightweight
+                        </h3>
+                        <p class="feature-description">
+                            Single Go binary or Docker Compose. ~20MB memory, minimal CPU usage. Your choice, your infrastructure.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-infinity-icon lucide-infinity"><path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"/></svg>
+                            Future-Proof Storage
+                        </h3>
+                        <p class="feature-description">
+                            Standard Markdown files, local SQLite database. No vendor lock-in, no proprietary formats. Your notes are yours, accessible forever.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z"/></svg>
+                            Focus Areas
+                        </h3>
+                        <p class="feature-description">
+                            Organize with flexible tags, not rigid folders. Create custom views called "Focus Modes" that adapt with your priorities.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                            Rich Markdown
+                        </h3>
+                        <p class="feature-description">
+                            Everything you need to structure your thoughts: tables, code blocks, task lists, highlights, and more, all with standard Markdown.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+                            Instant Search
+                        </h3>
+                        <p class="feature-description">
+                            Full-text search across titles and content with BM25 ranking. Find what you need instantly as you type, including archived and deleted notes.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-leaf-icon lucide-leaf"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                            Thoughtful by Design
+                        </h3>
+                        <p class="feature-description">
+                            The interface disappears so your thinking can surface. A minimal palette and essential features keep you focused on your ideas.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive-restore-icon lucide-archive-restore"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2"/><path d="M20 8v11a2 2 0 0 1-2 2h-2"/><path d="m9 15 3-3 3 3"/><path d="M12 12v9"/></svg>
+                            Smart Organization
+                        </h3>
+                        <p class="feature-description">
+                            Archive notes for later, soft delete with restore capability. Automatic cleanup keeps your workspace tidy without losing important content.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-keyboard-icon lucide-keyboard"><path d="M10 8h.01"/><path d="M12 12h.01"/><path d="M14 8h.01"/><path d="M16 12h.01"/><path d="M18 8h.01"/><path d="M6 8h.01"/><path d="M7 16h10"/><path d="M8 12h.01"/><rect width="20" height="16" x="2" y="4" rx="2"/></svg>
+                            Keyboard Shortcuts
+                        </h3>
+                        <p class="feature-description">
+                            Essential keyboard shortcuts for creating notes, searching, text formatting, and navigation throughout the interface.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smartphone-icon lucide-smartphone"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                            Mobile-Friendly
+                        </h3>
+                        <p class="feature-description">
+                            Responsive design that works well on mobile devices. Can be installed as a PWA for quick access from your home screen.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-plus-icon lucide-shield-plus"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>
+                            Built to Last
+                        </h3>
+                        <p class="feature-description">
+                            Minimal dependencies, lean codebase. Reduces bit rot risk and ensures long-term stability.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layers-icon lucide-layers"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg>
+                            Multiple Views
+                        </h3>
+                        <p class="feature-description">
+                            Switch between list, card, and gallery layouts. Each view optimized for different types of content.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                            Image Support
+                        </h3>
+                        <p class="feature-description">
+                            Drag and drop images directly into notes or paste from clipboard. Gallery view organizes visual content with automatic image management.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon-star-icon lucide-moon-star"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+                            Dark Mode
+                        </h3>
+                        <p class="feature-description">
+                            Switch to a dark theme for comfortable reading in low-light environments. Easy on the eyes during late-night writing sessions.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wifi-off-icon lucide-wifi-off"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/></svg>
+                            Offline Mode
+                        </h3>
+                        <p class="feature-description">
+                            Access and read your notes without an internet connection. Your thoughts remain available even when you're disconnected from the world.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud-upload-icon lucide-cloud-upload"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg>
+                            Import Notes
+                        </h3>
+                        <p class="feature-description">
+                            Migrate your existing notes seamlessly with simple import options. Supports Markdown files and plain text formats to bring your knowledge forward.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud-download"><path d="M12 13v8l-4-4"/><path d="m12 21 4-4"/><path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"/></svg>
+                            Export Notes
+                        </h3>
+                        <p class="feature-description">
+                            Download complete backups with Markdown files for other apps, JSON data for programmatic import, and all referenced images preserved.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-highlighter-icon lucide-highlighter"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+                            Formatting Toolbar
+                        </h3>
+                        <p class="feature-description">
+                            Format your notes effortlessly with an intuitive toolbar. Quick access to headings, lists, links, checklists, and other essential formatting options.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-stack-icon lucide-file-stack"><path d="M21 7h-3a2 2 0 0 1-2-2V2"/><path d="M21 6v6.5c0 .8-.7 1.5-1.5 1.5h-7c-.8 0-1.5-.7-1.5-1.5v-9c0-.8.7-1.5 1.5-1.5H17Z"/><path d="M7 8v8.8c0 .3.2.6.4.8.2.2.5.4.8.4H15"/><path d="M3 12v8.8c0 .3.2.6.4.8.2.2.5.4.8.4H11"/></svg>
+                            Templates
+                        </h3>
+                        <p class="feature-description">
+                            Create reusable note templates with placeholders. Quickly start new notes with consistent structure and formatting.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin-icon lucide-pin"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                            Pinned Notes
+                        </h3>
+                        <p class="feature-description">
+                            Keep important notes at the top of your list. Pin frequently accessed notes for quick access whenever you need them.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                            Canvas
+                            <span class="experimental">Experimental</span>
+                        </h3>
+                        <p class="feature-description">
+                             Spatial organization for visual thinkers. Arrange notes and images on an infinite canvas to see connections and build your mental model.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-brain-circuit-icon lucide-brain-circuit"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M9 13a4.5 4.5 0 0 0 3-4"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M12 13h4"/><path d="M12 18h6a2 2 0 0 1 2 2v1"/><path d="M12 8h8"/><path d="M16 8V5a2 2 0 0 1 2-2"/><circle cx="16" cy="13" r=".5"/><circle cx="18" cy="3" r=".5"/><circle cx="20" cy="21" r=".5"/><circle cx="20" cy="8" r=".5"/></svg>
+                            MCP Server
+                            <span class="experimental">Experimental</span>
+                        </h3>
+                        <p class="feature-description">
+                            Connect your favorite AI apps to chat naturally with your notes and uncover hidden connections across everything you've written.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- mouji snippet -->
+    <script>
+        (function() {
+            var COLLECT_URL = "https://mouji.fly.dev/collect";
+            var PROJECT_ID = "4b8f80d61e65f0c6c954826d89646e4a";
+            var GLOBAL_VAR_NAME = "__mouji__";
+
+            window[GLOBAL_VAR_NAME] = {};
+
+            window[GLOBAL_VAR_NAME].sendPageView = function() {
+                var path = location.pathname;
+                var title = document.title;
+                var referrer = document.referrer;
+
+                var url =
+                    COLLECT_URL +
+                    "?project_id=" +
+                    PROJECT_ID +
+                    "&title=" +
+                    encodeURIComponent(title) +
+                    "&path=" +
+                    encodeURIComponent(path) +
+                    "&referrer=" +
+                    encodeURIComponent(referrer);
+
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", url);
+                xhr.send();
+            };
+
+            window[GLOBAL_VAR_NAME].sendPageView();
+        })();
+    </script>
+
+</body>
+</html>
